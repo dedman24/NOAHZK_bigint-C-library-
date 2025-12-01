@@ -160,8 +160,8 @@ void NOAHZK_variable_width_madd_constant(struct NOAHZK_variable_width_var* dst, 
     NOAHZK_destroy_variable_width_var(product, 0);
 }
 
-// if result is null, 
-struct NOAHZK_variable_width_var* NOAHZK_variable_width_nth_triangle_number(struct NOAHZK_variable_width_var* dst, uint64_t n){
+// not constant-time
+void* NOAHZK_variable_width_nth_triangle_number(struct NOAHZK_variable_width_var* dst, uint64_t n){
     if(!dst) dst = NOAHZK_init_variable_width_var(NULL, 0);
     NOAHZK_variable_width_square_constant(dst, n);
 
