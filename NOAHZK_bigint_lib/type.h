@@ -61,8 +61,9 @@ void* NOAHZK_copy_variable_width_var(struct NOAHZK_variable_width_var* dst, stru
 
 void NOAHZK_destroy_variable_width_var(struct NOAHZK_variable_width_var* todestroy, int freeptr){
     if(todestroy->arr){
-        secure_erase(todestroy->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(todestroy));
-        secure_erase(&todestroy->width, sizeof(todestroy->width));
+// not really best practice to use memset here, perhaps user of this library should replace it with his own secure implementation.
+        memset(todestroy->arr, 0, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(todestroy));
+        memset(&todestroy->width, 0, sizeof(todestroy->width));
         free(todestroy->arr);
     } 
     if(freeptr) free(todestroy);
