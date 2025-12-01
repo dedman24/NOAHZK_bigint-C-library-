@@ -59,9 +59,19 @@ void* NOAHZK_copy_variable_width_var(struct NOAHZK_variable_width_var* dst, stru
     return dst;
 }
 
+// moves fields from src to dst, clears src. doesn't free it.
+// allocates dst if NULL is passed
+void* NOAHZK_move_variable_width_var(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* src){
+    if(!dst) dst = malloc(sizeof(struct NOAHZK_variable_width_var));
+
+    dst->width = src->width; src->width = 0;
+    dst->arr = src->arr; src->arr = NULL;
+
+    return dst;
+}
+
 void NOAHZK_destroy_variable_width_var(struct NOAHZK_variable_width_var* todestroy, int freeptr){
     if(todestroy->arr){
-// not really best practice to use memset here, perhaps user of this library should replace it with his own secure implementation.
         memset(todestroy->arr, 0, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(todestroy));
         memset(&todestroy->width, 0, sizeof(todestroy->width));
         free(todestroy->arr);
