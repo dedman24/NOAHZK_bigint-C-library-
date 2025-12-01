@@ -13,6 +13,7 @@ The bigint type itself is defined in [definitions.h](https://github.com/dedman24
   - NOAHZK_init_variable_width_var            ~ initializes variable-width var (or creates a new one if none is passed) so that it is a certain amount of bytes wide (allowed to be 0). Its contents are initialized to 0.
   - NOAHZK_init_variable_width_var_constant   ~ initializes variable-width var (or creates a new one if none is passed) to the uint64_t passed to it, so it uses the minimum number of limbs necessary to represent it.
   - NOAHZK_copy_variable_width_var            ~ copies a variable-width var to another, or creates a new, distinct copy if none to copy to is passed.
+
 To free any variable-width var, just call NOAHZK_destroy_variable_width_var, with, as first argument, the variable to free, and as second, whether to free only the buffer it occupies in memory and erase it (0) or whether to also free the variable (1).
 
 ## licenses
