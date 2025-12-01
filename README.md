@@ -10,4 +10,4 @@ It also implements ceil logarithm base 2 of an uint64_t in constant time.
 Just download the whole NOAHZK_bigint library and include NOAHZK_bigint_lib/NOAHZK_bigint.h in your project.
 
 ## licenses
-This work is released into the public domain with [CC0 1.0](https://github.com/dedman24/numhash0/blob/main/LICENSE).
+This work is released into the public domain with [CC0 1.0](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/LICENSE).
