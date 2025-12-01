@@ -5,7 +5,7 @@ NOAHZK_bigint is a bigint library written in C that implements the following ope
   - unsigned multiplication (using 4-mul variant of the Karatsuba algorithm)
   - ceil logarithm base 2 of (said integer + 1)
 
-It also implements ceil logarithm base 2 of an uint64_t in constant time.
+It also implements ceil logarithm base 2 of an uint64_t in constant time.  
 Both ceil_log2 (called NOAHZK_ceil_log2) and ceil_log2(x+1) (called NOAHZK_min_bitcnt_var for the uint64_t version and NOAHZK_variable_width_min_bitcnt for the variable width type version) use GCC's __builtin* family of functions.
 
 ## usage
