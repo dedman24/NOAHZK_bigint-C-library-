@@ -7,7 +7,7 @@ NOAHZK_bigint is a bigint library written in C that implements the following ope
 It also implements ceil logarithm base 2 of an uint64_t in constant time.
 
 ## usage
-Just download the whole NOAHZK_bigint library and include NOAHZK_bigint_lib/NOAHZK_bigint.h in your project.
+Just download the [NOAHZK_bigint_lib](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/NOAHZK_bigint_lib) folder and include [NOAHZK_bigint_lib/NOAHZK_bigint.h](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/NOAHZK_bigint_lib/noahzk_bigint.h) in your project.
 
 ## licenses
 This work is released into the public domain with [CC0 1.0](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/LICENSE).
