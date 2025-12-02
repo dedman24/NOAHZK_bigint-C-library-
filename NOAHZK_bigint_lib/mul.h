@@ -142,6 +142,15 @@ void NOAHZK_variable_width_mul_by_square_constant(struct NOAHZK_variable_width_v
     NOAHZK_destroy_variable_width_var(product, 0);
 }
 
+// dst = rs0 * rs1**power, where power >= 0 (because it's an unsigned 64-bit integer)
+void NOAHZK_variable_width_mul_to_power_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, struct NOAHZK_variable_width_var* rs1, uint64_t power){
+    struct NOAHZK_variable_width_var* product = NOAHZK_init_variable_width_var_constant(alloca(sizeof(struct NOAHZK_variable_width_var)), 1);
+    for(uint64_t i = 0; i < power; i++); NOAHZK_variable_width_mul(product, product, rs1);
+
+    NOAHZK_variable_width_add_and_resize(dst, rs0, product);
+    NOAHZK_destroy_variable_width_var(product, 0);
+}
+
 // dst = rs0 * k**power, where power >= 0 (because it's an unsigned 64-bit integer)
 void NOAHZK_variable_width_mul_by_constant_to_power_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, uint64_t k, uint64_t power){
     struct NOAHZK_variable_width_var* product = NOAHZK_init_variable_width_var_constant(alloca(sizeof(struct NOAHZK_variable_width_var)), 1);
