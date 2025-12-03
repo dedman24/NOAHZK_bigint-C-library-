@@ -26,6 +26,7 @@ typedef uint32_t NOAHZK_op_t;
 
 #define NOAHZK_MAX(x, y) ((x) > (y)? (x): (y))
 #define NOAHZK_MIN(x, y) ((x) < (y)? (x): (y))
+#define NOAHZK_SWP(x, y) (x) = (x) ^ (y); (y) = (x) ^ (y); (x) = (x) ^ (y)
 #define NOAHZK_SWP_PTR(x, y) (x) = (void*)((intptr_t)(x) ^ (intptr_t)(y)); (y) = (void*)((intptr_t)(x) ^ (intptr_t)(y)); (x) = (void*)((intptr_t)(x) ^ (intptr_t)(y))
 #define NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE(x)     ((x). width*sizeof(NOAHZK_limb_t))
 #define NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(x) ((x)->width*sizeof(NOAHZK_limb_t))
