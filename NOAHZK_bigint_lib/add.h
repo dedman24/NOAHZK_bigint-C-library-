@@ -32,7 +32,7 @@ void NOAHZK_variable_width_add_constant(struct NOAHZK_variable_width_var* dst, s
 
     for(uint64_t i = 0; i < dst->width; i++){
 // carry-out goes into the 33rd bit, which can be extracted in constant-time assuming constant-time shifts
-        uint64_t z = (uint64_t)(i < rs0->width? rs0->arr[i]: 0) + (uint64_t)(i < sizeof(uint64_t)/sizeof(NOAHZK_limb_t)? (k >> (i*BITS_IN_NOAHZK_LIMB)) & NOAHZK_LIMB_MAX: 0) + carry;
+        uint64_t z = (uint64_t)(i < rs0->width? rs0->arr[i]: 0) + NOAHZK_get_section_from_var(k, NOAHZK_LIMB_MAX, i, NOAHZK_limb_t) + carry;
         dst->arr[i] = z & NOAHZK_LIMB_MAX;
         carry = z >> BITS_IN_NOAHZK_LIMB;
     }
@@ -76,7 +76,7 @@ void NOAHZK_variable_width_add_and_resize_constant(struct NOAHZK_variable_width_
     }
 
     for(uint64_t i = 0; i < dst->width; i++){
-        uint64_t z = (uint64_t)(i < rs0->width? rs0->arr[i]: 0) + (uint64_t)(i < sizeof(uint64_t)/sizeof(NOAHZK_limb_t)? (k >> (i*BITS_IN_NOAHZK_LIMB)) & NOAHZK_LIMB_MAX: 0) + carry;
+        uint64_t z = (uint64_t)(i < rs0->width? rs0->arr[i]: 0) + NOAHZK_get_section_from_var(k, NOAHZK_LIMB_MAX, i, NOAHZK_limb_t) + carry;
         dst->arr[i] = z & NOAHZK_LIMB_MAX;
         carry = z >> BITS_IN_NOAHZK_LIMB;
     }
@@ -123,14 +123,14 @@ void NOAHZK_variable_width_add_with_byte_offset_byte(void* real_dst, void* real_
 
 // compiles to constant-time code on any cpu with constant-time shifts.
 // used for proving, so having it be constant-time is integral
-void NOAHZK_variable_width_add_constant_byte(void* real_dst, void* real_rs0, uint64_t k, const uint64_t width0, const uint64_t width_result){
+void NOAHZK_variable_width_add_constant_byte(void* real_dst, void* real_rs0, const uint64_t k, const uint64_t width0, const uint64_t width_result){
     uint8_t carry = 0;
     uint8_t *dst = real_dst, *rs0 = real_rs0;
 
     for(uint64_t i = 0; i < width_result; i++){
 // carry-out goes into the ninth bit, which can be extracted in constant-time assuming constant-time shifts
 // runs in constant time regardless of conditional statements because those statements are NOT DATA-DEPENDENT; widths of operands in NOAHZK are public.
-        uint16_t z = (uint16_t)(i < width0? rs0[i]: 0) + (uint16_t)(i < sizeof(uint64_t)? (k >> (i*BITS_IN_UINT8_T)) & UINT8_MAX: 0) + carry;
+        uint16_t z = (uint16_t)(i < width0? rs0[i]: 0) + NOAHZK_get_section_from_var(k, UINT8_MAX, i, uint8_t) + carry;
         dst[i] = z & UINT8_MAX;
         carry = z >> BITS_IN_UINT8_T;
     }

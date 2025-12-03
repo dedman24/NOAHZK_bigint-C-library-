@@ -12,6 +12,7 @@
 #include "stdint.h"
 
 typedef uint32_t NOAHZK_limb_t;
+typedef uint32_t NOAHZK_op_t;
 #define NOAHZK_LIMB_MAX UINT32_MAX
 
 #define BITS_IN_UINT64_T    64
@@ -20,10 +21,12 @@ typedef uint32_t NOAHZK_limb_t;
 #define BITS_IN_NOAHZK_LIMB (sizeof(NOAHZK_limb_t)*BITS_IN_UINT8_T)
 
 #define NOAHZK_convert_from_bits_to_bytes(x) (((x)/BITS_IN_UINT8_T) + ((x)%BITS_IN_UINT8_T != 0))
+// gets section from variable; say variable is 0x01234567; NOAHZK_get_section_from_var(variable, UINT8_MAX, 0, uint8_t) will return a value of the same type as var holding 0x67
+#define NOAHZK_get_section_from_var(var, section_mask, section, section_type) ((section) < sizeof(var)/sizeof(section_type)? var >> (section)*(sizeof(var)*BITS_IN_UINT8_T) & section_mask: 0)
 
 #define NOAHZK_MAX(x, y) ((x) > (y)? (x): (y))
 #define NOAHZK_MIN(x, y) ((x) < (y)? (x): (y))
-#define NOAHZK_SWP(x, y) (x) = (x) ^ (y); (y) = (x) ^ (y); (x) = (x) ^ (y)
+#define NOAHZK_SWP_PTR(x, y) (x) = (void*)((intptr_t)(x) ^ (intptr_t)(y)); (y) = (void*)((intptr_t)(x) ^ (intptr_t)(y)); (x) = (void*)((intptr_t)(x) ^ (intptr_t)(y))
 #define NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE(x)     ((x). width*sizeof(NOAHZK_limb_t))
 #define NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(x) ((x)->width*sizeof(NOAHZK_limb_t))
 #define NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR_BITS(x) ((x)->width*BITS_IN_NOAHZK_LIMB)
