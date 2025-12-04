@@ -162,6 +162,8 @@ void NOAHZK_variable_width_mul_by_constant_to_power_constant(struct NOAHZK_varia
 
 // dst += src*k
 void NOAHZK_variable_width_madd_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* src, uint64_t k){
+    if(!src->width) return;
+
     struct NOAHZK_variable_width_var* product = NOAHZK_init_variable_width_var(alloca(sizeof(struct NOAHZK_variable_width_var)), 0);
     NOAHZK_variable_width_mul_constant(product, src, k);
 
