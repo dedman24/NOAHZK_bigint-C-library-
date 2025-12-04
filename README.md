@@ -15,7 +15,8 @@ The bigint type itself is defined in [definitions.h](https://github.com/dedman24
   - NOAHZK_init_variable_width_var_constant   ~ initializes variable-width var (or creates a new one if none is passed) to the uint64_t passed to it, so it uses the minimum number of limbs necessary to represent it.
   - NOAHZK_copy_variable_width_var            ~ copies a variable-width var to another, or creates a new, distinct copy if none to copy to is passed.
 
-To free any variable-width var, just call NOAHZK_destroy_variable_width_var, with, as first argument, the variable to free, and as second, whether to free only the buffer it occupies in memory and erase it (0) or whether to also free the variable (1).
+Each variable is composed of a pointer to an array of "limbs" (dynamically allocated, NOAHZK_limb_t is a uint32_t) and a size (number of limbs in array).
+To free any variable-width var, just call NOAHZK_destroy_variable_width_var, with, as first argument, the variable to free, and as second, whether to free ONLY the limbs array and clear the width (0) or whether to also free the variable itself (1).
 
 ## licenses
 This work is released into the public domain with [CC0 1.0](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/LICENSE).
