@@ -8,11 +8,7 @@
 
 #ifndef NOAHZK_bigint_included
 #define NOAHZK_bigint_included
-
-#include "stdint.h"
-#include "string.h"
-#include "stdlib.h"
-#include "../ref/utils.h"
+// oh shit
 
 #include "ops/definitions.h"
 #include "ops/logarithms.h"
