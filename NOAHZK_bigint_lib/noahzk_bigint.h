@@ -12,7 +12,6 @@
 #include "stdint.h"
 #include "string.h"
 #include "stdlib.h"
-#include "../ref/utils.h"
 
 #include "ops/definitions.h"
 #include "ops/logarithms.h"
