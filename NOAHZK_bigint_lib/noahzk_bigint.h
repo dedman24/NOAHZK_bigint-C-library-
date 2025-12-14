@@ -9,10 +9,6 @@
 #ifndef NOAHZK_bigint_included
 #define NOAHZK_bigint_included
 
-#include "stdint.h"
-#include "string.h"
-#include "stdlib.h"
-
 #include "ops/definitions.h"
 #include "ops/logarithms.h"
 #include "ops/type.h"
