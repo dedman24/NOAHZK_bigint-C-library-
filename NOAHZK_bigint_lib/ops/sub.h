@@ -9,8 +9,8 @@
 #ifndef NOAHZK_bigint_sub_included
 #define NOAHZK_bigint_sub_included
 
-#include "stdint.h"
-#include "definitions.h"
+#include "definitions.h"    // NOAHZK variable-width type
+#include "stdint.h"         // integer types
 
 // dst = rs0 + or - (by virtue of op) rs1; constant-time regardless of op as long as add and sub take equal time in the CPU
 void NOAHZK_variable_width_add_or_sub(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, struct NOAHZK_variable_width_var* rs1, const NOAHZK_op_t op){

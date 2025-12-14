@@ -9,7 +9,7 @@
 #ifndef NOAHZK_bigint_definitions_included
 #define NOAHZK_bigint_definitions_included
 
-#include "stdint.h"
+#include "stdint.h"     // integer types
 
 #define NOAHZK_BIGINT_OP_ADD 0
 #define NOAHZK_BIGINT_OP_SUB 1

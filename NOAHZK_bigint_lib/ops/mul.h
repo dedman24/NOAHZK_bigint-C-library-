@@ -9,13 +9,13 @@
 #ifndef NOAHZK_bigint_mul_included
 #define NOAHZK_bigint_mul_included
 
-#include "stdint.h"
-#include "definitions.h"
-#include "logarithms.h"
-#include "type.h"
-#include "add.h"
-#include "string.h"
-#include "stdlib.h"
+#include "definitions.h"    // NOAHZK variable-width type
+#include "logarithms.h"     // bit and byte width of constants and arrays
+#include "stdint.h"         // integer types
+#include "stdlib.h"         // dynamic memory operations
+#include "string.h"         // memset
+#include "type.h"           // ops to allocate, destroy variable width types 
+#include "add.h"            // variable-width addition 
 
 // not constant time, no clue on how one would implement this in constant time
 void NOAHZK_variable_width_shift_right(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* src, uint64_t shamt){
@@ -136,7 +136,7 @@ void NOAHZK_variable_width_square_constant(struct NOAHZK_variable_width_var* dst
 
 void NOAHZK_variable_width_mul_by_square_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, uint64_t k){
     struct NOAHZK_variable_width_var* product = NOAHZK_variable_width_init(alloca(sizeof(struct NOAHZK_variable_width_var)), 0);
-    NOAHZK_variable_width_square(product, k);
+    NOAHZK_variable_width_square_constant(product, k);
 
     NOAHZK_variable_width_add_and_resize(dst, rs0, product);
     NOAHZK_variable_width_destroy(product, 0);

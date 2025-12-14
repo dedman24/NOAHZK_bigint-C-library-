@@ -9,10 +9,10 @@
 #ifndef NOAHZK_bigint_add_included
 #define NOAHZK_bigint_add_included
 
-#include "stdint.h"
-#include "definitions.h"
-#include "string.h"
-#include "stdlib.h"
+#include "definitions.h"    // NOAHZK variable-width type
+#include "stdint.h"         // integer types
+#include "stdlib.h"         // dynamic memory operations
+#include "string.h"         // memset
 
 // compiles to constant-time code on any cpu with constant-time shifts.
 // used for proving, so having it be constant-time is integral

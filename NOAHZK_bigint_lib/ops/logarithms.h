@@ -9,8 +9,8 @@
 #ifndef NOAHZK_bigint_logarithm_included
 #define NOAHZK_bigint_logarithm_included
 
-#include "definitions.h"
-#include "stdint.h"
+#include "definitions.h"    // NOAHZK variable-width type
+#include "stdint.h"         // integer types
 
 // runs in constant time 
 uint64_t NOAHZK_min_bitcnt_var(const uint64_t value){

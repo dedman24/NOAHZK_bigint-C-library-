@@ -9,10 +9,11 @@
 #ifndef NOAHZK_bigint_type_included
 #define NOAHZK_bigint_type_included
 
-#include "definitions.h"
-#include "logarithms.h"
-#include "string.h"
-#include "stdlib.h"
+#include "definitions.h"    // NOAHZK variable-width type
+#include "logarithms.h"     // bit and byte width of integer values and arrays
+#include "stdint.h"         // integer types
+#include "string.h"         // memset, memcpy
+#include "stdlib.h"         // dynamic memory operations
 
 void* NOAHZK_variable_width_init(struct NOAHZK_variable_width_var* toinit, const uint64_t width_in_bytes){
     if(!toinit) toinit = malloc(sizeof(struct NOAHZK_variable_width_var));
