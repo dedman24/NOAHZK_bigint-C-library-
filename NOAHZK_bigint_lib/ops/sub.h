@@ -71,9 +71,10 @@ void NOAHZK_variable_width_sub_constant(struct NOAHZK_variable_width_var* dst, s
 }
 
 // compiles to constant-time code on any cpu with constant-time shifts.
-void NOAHZK_variable_width_neg_byte(void* real_dst, void* real_src, const uint64_t width){
+void NOAHZK_variable_width_neg_byte(void* real_dst, const void* real_src, const uint64_t width){
     uint8_t carry = 1;
-    uint8_t *dst = real_dst, *src = real_src;
+    uint8_t *dst = real_dst;
+    const uint8_t *src = real_src;
 
     for(uint64_t i = 0; i < width; i++){
 // if subtraction overflows and requires a borrow, z (when interpreted as a signed type) is negative and thus bit 15 is set. this also means that bit 8 is set, so we can check that for borrow. 
@@ -83,9 +84,10 @@ void NOAHZK_variable_width_neg_byte(void* real_dst, void* real_src, const uint64
     }
 }
 
-void NOAHZK_variable_width_sub_with_bit_offset_byte(void* real_dst, void* real_rs0, void* real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result, uint64_t bit_offset){
+void NOAHZK_variable_width_sub_with_bit_offset_byte(void* real_dst, const void* real_rs0, const void* real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result, uint64_t bit_offset){
     int8_t borrow = 0;
-    uint8_t *dst = real_dst, *rs0 = real_rs0, *rs1 = real_rs1;
+    uint8_t *dst = real_dst;
+    const uint8_t *rs0 = real_rs0, *rs1 = real_rs1;
 
     const uint64_t byte_offset = bit_offset/BITS_IN_UINT8_T;
 
@@ -104,9 +106,10 @@ void NOAHZK_variable_width_sub_with_bit_offset_byte(void* real_dst, void* real_r
 }
 
 // compiles to constant-time code on any cpu with constant-time shifts.
-void NOAHZK_variable_width_sub_byte(void* real_dst, void* real_rs0, void* real_rs1, const uint64_t width){
+void NOAHZK_variable_width_sub_byte(void* real_dst, const void* real_rs0, const void* real_rs1, const uint64_t width){
     uint8_t borrow = 0;
-    uint8_t *dst = real_dst, *rs0 = real_rs0, *rs1 = real_rs1;
+    uint8_t *dst = real_dst;
+    const uint8_t *rs0 = real_rs0, *rs1 = real_rs1;
 
     for(uint64_t i = 0; i < width; i++){
 // if subtraction overflows and requires a borrow, z (when interpreted as a signed type) is negative and thus bit 15 is set. this also means that bit 8 is set, so we can check that for borrow. 
@@ -117,9 +120,10 @@ void NOAHZK_variable_width_sub_byte(void* real_dst, void* real_rs0, void* real_r
 }
 
 // compiles to constant-time code on any cpu with constant-time shifts.
-void NOAHZK_variable_width_sub_constant_byte(void* real_dst, void* real_rs0, const uint64_t k, const uint64_t width){
+void NOAHZK_variable_width_sub_constant_byte(void* real_dst, const void* real_rs0, const uint64_t k, const uint64_t width){
     uint8_t borrow = 0;
-    uint8_t *dst = real_dst, *rs0 = real_rs0;
+    uint8_t *dst = real_dst;
+    const uint8_t *rs0 = real_rs0;
 
     for(uint64_t i = 0; i < width; i++){
 // if subtraction overflows and requires a borrow, z (when interpreted as a signed type) is negative and thus bit 15 is set. this also means that bit 8 is set, so we can check that for borrow. 
@@ -130,9 +134,10 @@ void NOAHZK_variable_width_sub_constant_byte(void* real_dst, void* real_rs0, con
 }
 
 // compiles to constant-time code on any cpu with constant-time shifts.
-void NOAHZK_variable_width_both_sub_byte(void* real_dst, void* real_rs0, void* real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result){
+void NOAHZK_variable_width_both_sub_byte(void* real_dst, const void* real_rs0, const void* real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result){
     uint8_t borrow = 0;
-    uint8_t *dst = real_dst, *rs0 = real_rs0, *rs1 = real_rs1;
+    uint8_t *dst = real_dst;
+    const uint8_t *rs0 = real_rs0, *rs1 = real_rs1;
 
     for(uint64_t i = 0; i < width_result; i++){
 // if subtraction overflows and requires a borrow, z (when interpreted as a signed type) is negative and thus bit 15 is set. this also means that bit 8 is set, so we can check that for borrow. 

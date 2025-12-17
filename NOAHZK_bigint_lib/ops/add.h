@@ -88,9 +88,10 @@ void NOAHZK_variable_width_add_and_resize_constant(struct NOAHZK_variable_width_
     }
 }
 
-void NOAHZK_variable_width_add_with_bit_offset_byte(void* real_dst, void* real_rs0, void* real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result, uint64_t bit_offset){
+void NOAHZK_variable_width_add_with_bit_offset_byte(void* real_dst, const void* real_rs0, const void* real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result, uint64_t bit_offset){
     uint8_t carry = 0;
-    uint8_t *dst = real_dst, *rs0 = real_rs0, *rs1 = real_rs1;
+    uint8_t *dst = real_dst;
+    const uint8_t *rs0 = real_rs0, *rs1 = real_rs1;
 
     const uint64_t byte_offset = bit_offset/BITS_IN_UINT8_T;
 
@@ -108,9 +109,10 @@ void NOAHZK_variable_width_add_with_bit_offset_byte(void* real_dst, void* real_r
     }
 }
 
-void NOAHZK_variable_width_add_with_byte_offset_byte(void* real_dst, void* real_rs0, void* real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result, uint64_t byte_offset){
+void NOAHZK_variable_width_add_with_byte_offset_byte(void* real_dst, const void* real_rs0, const void* real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result, uint64_t byte_offset){
     uint8_t carry = 0;
-    uint8_t *dst = real_dst, *rs0 = real_rs0, *rs1 = real_rs1;
+    uint8_t *dst = real_dst;
+    const uint8_t *rs0 = real_rs0, *rs1 = real_rs1;
 
     for(uint64_t i = 0; i < width_result; i++){
 // runs in constant time regardless of conditional statements because those statements are NOT DATA-DEPENDENT; widths of operands in NOAHZK are public.
@@ -123,9 +125,10 @@ void NOAHZK_variable_width_add_with_byte_offset_byte(void* real_dst, void* real_
 
 // compiles to constant-time code on any cpu with constant-time shifts.
 // used for proving, so having it be constant-time is integral
-void NOAHZK_variable_width_add_constant_byte(void* real_dst, void* real_rs0, const uint64_t k, const uint64_t width0, const uint64_t width_result){
+void NOAHZK_variable_width_add_constant_byte(void* real_dst, const void* real_rs0, const uint64_t k, const uint64_t width0, const uint64_t width_result){
     uint8_t carry = 0;
-    uint8_t *dst = real_dst, *rs0 = real_rs0;
+    uint8_t *dst = real_dst;
+    const uint8_t *rs0 = real_rs0;
 
     for(uint64_t i = 0; i < width_result; i++){
 // carry-out goes into the ninth bit, which can be extracted in constant-time assuming constant-time shifts
@@ -138,9 +141,10 @@ void NOAHZK_variable_width_add_constant_byte(void* real_dst, void* real_rs0, con
 
 // compiles to constant-time code on any cpu with constant-time shifts.
 // used for proving, so having it be constant-time is integral
-void NOAHZK_variable_width_add_byte(void* real_dst, void* real_rs0, void* real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result){
+void NOAHZK_variable_width_add_byte(void* real_dst, const void* real_rs0, const void* real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result){
     uint8_t carry = 0;
-    uint8_t *dst = real_dst, *rs0 = real_rs0, *rs1 = real_rs1;
+    uint8_t *dst = real_dst;
+    const uint8_t *rs0 = real_rs0, *rs1 = real_rs1;
 
     for(uint64_t i = 0; i < width_result; i++){
 // carry-out goes into the ninth bit, which can be extracted in constant-time assuming constant-time shifts
@@ -151,7 +155,7 @@ void NOAHZK_variable_width_add_byte(void* real_dst, void* real_rs0, void* real_r
     }
 }
 
-// dst += src
+// dst += src, where dst is a byte array and src a variable-width variable
 void NOAHZK_variable_width_add_vwv_to_byte(void* dst, struct NOAHZK_variable_width_var* src, const uint64_t width){
     NOAHZK_variable_width_add_byte(dst, dst, src->arr, width, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(src), width);
 }

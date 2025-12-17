@@ -18,7 +18,7 @@
 #include "add.h"            // variable-width addition 
 
 // not constant time, no clue on how one would implement this in constant time
-void NOAHZK_variable_width_shift_right(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* src, uint64_t shamt){
+void NOAHZK_variable_width_shift_right(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* src, const uint64_t shamt){
     NOAHZK_limb_t dst_arr[dst->width];
     memset(dst_arr, 0, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(dst));
     if(shamt == 0) memcpy(dst_arr, dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(dst));
@@ -33,7 +33,7 @@ void NOAHZK_variable_width_shift_right(struct NOAHZK_variable_width_var* dst, st
 // basically 4-mul version of Karatsuba algorithm
 // had problems trying to implement 3-mul version
 // constant-time 
-void NOAHZK_variable_width_mul_byte(void* dst, void* rs0, void* rs1, uint64_t width0, uint64_t width1){
+void NOAHZK_variable_width_mul_byte(void* dst, const void* rs0, const void* rs1, const uint64_t width0, const uint64_t width1){
 // handles common cases quickly
     if(width0 == 0 && width1 == 0) return;
     if(width0 == 0 || width1 == 0) return;
@@ -85,7 +85,7 @@ void NOAHZK_variable_width_mul_byte(void* dst, void* rs0, void* rs1, uint64_t wi
     NOAHZK_variable_width_add_with_byte_offset_byte(dst, dst,  X1Y1, width_dst,  width_X1Y1, width_dst, n+m);
 }
 
-void NOAHZK_variable_width_mul_constant_byte(void* dst, void* rs0, uint64_t k, uint64_t width0){
+void NOAHZK_variable_width_mul_constant_byte(void* dst, const void* rs0, const uint64_t k, const uint64_t width0){
     uint64_t bytes_k = NOAHZK_min_bytecnt_var(k);
     NOAHZK_variable_width_mul_byte(dst, rs0, &k, width0, bytes_k);
 }
@@ -99,7 +99,7 @@ void NOAHZK_variable_width_mul(struct NOAHZK_variable_width_var* dst, struct NOA
     NOAHZK_variable_width_mul_byte(dst->arr, rs0->arr, rs1->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(rs0), NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(rs1));
 }
 
-void NOAHZK_variable_width_mul_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, uint64_t k){
+void NOAHZK_variable_width_mul_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, const uint64_t k){
     uint64_t bytes_k = NOAHZK_min_bytecnt_var(k);
     dst->width = rs0->width + bytes_k;
     dst->arr = realloc(dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(dst));
@@ -107,7 +107,7 @@ void NOAHZK_variable_width_mul_constant(struct NOAHZK_variable_width_var* dst, s
     NOAHZK_variable_width_mul_byte(dst->arr, rs0->arr, &k, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(rs0), bytes_k);
 }
 
-void NOAHZK_variable_width_mul_both_constants(struct NOAHZK_variable_width_var* dst, uint64_t k0, uint64_t k1){
+void NOAHZK_variable_width_mul_both_constants(struct NOAHZK_variable_width_var* dst, const uint64_t k0, const uint64_t k1){
     uint64_t bytes_k0 = NOAHZK_min_bytecnt_var(k0);
     uint64_t bytes_k1 = NOAHZK_min_bytecnt_var(k1);
 
@@ -173,7 +173,7 @@ void NOAHZK_variable_width_madd_constant(struct NOAHZK_variable_width_var* dst, 
 
 // dst = (dst + rs1)*rs2, where dst and rs0 are byte arrays & rs1 and rs2 are variable-width vars
 // constant-time for safety reasons  
-void NOAHZK_variable_width_add_and_mul_into_byte(void* dst, struct NOAHZK_variable_width_var* rs1, struct NOAHZK_variable_width_var* rs2, uint64_t width0){
+void NOAHZK_variable_width_add_and_mul_into_byte(void* dst, struct NOAHZK_variable_width_var* rs1, struct NOAHZK_variable_width_var* rs2, const uint64_t width0){
     struct NOAHZK_variable_width_var* rs0 =  NOAHZK_variable_width_init_arr(alloca(sizeof(struct NOAHZK_variable_width_var)), dst, width0);
 
     NOAHZK_variable_width_add(rs0, rs0, rs1);
