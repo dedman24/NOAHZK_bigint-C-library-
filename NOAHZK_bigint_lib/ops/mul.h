@@ -60,26 +60,26 @@ void NOAHZK_variable_width_mul_byte(void* dst, const void* rs0, const void* rs1,
         return;
     }
 
-    uint64_t n = width0/2, m = width1/2;
+    const uint64_t n = width0/2, m = width1/2;
 
-    uint64_t width_X1Y1 = width0-n + width1-m;
+    const uint64_t width_X1Y1 = width0-n + width1-m;
     uint8_t X1Y1[width_X1Y1];
     NOAHZK_variable_width_mul_byte(X1Y1, (uint8_t*)rs0 + n, (uint8_t*)rs1 + m, width0-n, width1-m);
 
-    uint64_t width_X1Y0 = width0-n + m;
+    const uint64_t width_X1Y0 = width0-n + m;
     uint8_t X1Y0[width_X1Y0];
     NOAHZK_variable_width_mul_byte(X1Y0, (uint8_t*)rs0 + n, rs1, width0-n, m);
     
-    uint64_t width_X0Y1 = n + width1-m;
+    const uint64_t width_X0Y1 = n + width1-m;
     uint8_t X0Y1[width_X0Y1];
     NOAHZK_variable_width_mul_byte(X0Y1, rs0, (uint8_t*)rs1 + m, n, width1-m);
     
-    uint64_t width_X0Y0 = n + m;
+    const uint64_t width_X0Y0 = n + m;
     uint8_t X0Y0[width_X0Y0];
     NOAHZK_variable_width_mul_byte(X0Y0, rs0, rs1, n, m);
 // HAS to be done at the end because, if we do this at the start and dst == rs0, then we'd be setting rs0 to 0, which is bad.
     memset(dst, 0, width0+width1);
-    uint64_t width_dst = width0 + width1;
+    const uint64_t width_dst = width0 + width1;
     NOAHZK_variable_width_add_with_byte_offset_byte(dst, X0Y0, X0Y1, width_X0Y0, width_X0Y1, width_dst, m);
     NOAHZK_variable_width_add_with_byte_offset_byte(dst, dst,  X1Y0, width_dst,  width_X1Y0, width_dst, n);
     NOAHZK_variable_width_add_with_byte_offset_byte(dst, dst,  X1Y1, width_dst,  width_X1Y1, width_dst, n+m);
@@ -93,25 +93,27 @@ void NOAHZK_variable_width_mul_constant_byte(void* dst, const void* rs0, const u
 // multiplies two variable width variables together, returns the result in dst
 // constant time
 void NOAHZK_variable_width_mul(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, struct NOAHZK_variable_width_var* rs1){
-    dst->width = rs0->width + rs1->width;
-    dst->arr = realloc(dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(dst));
+    const uint64_t temp_dst_width = rs0->width + rs1->width;
+    dst->arr = realloc(dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_INT(temp_dst_width));
 
     NOAHZK_variable_width_mul_byte(dst->arr, rs0->arr, rs1->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(rs0), NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(rs1));
+    dst->width = temp_dst_width;
 }
 
 void NOAHZK_variable_width_mul_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, const uint64_t k){
-    uint64_t bytes_k = NOAHZK_min_bytecnt_var(k);
-    dst->width = rs0->width + bytes_k;
-    dst->arr = realloc(dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(dst));
+    const uint64_t limbs_k = NOAHZK_GET_LIMB_WIDTH_FROM_INT(NOAHZK_min_bytecnt_var(k));
+    const uint64_t temp_dst_width = rs0->width + limbs_k;
+    dst->arr = realloc(dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_INT(temp_dst_width));
 
-    NOAHZK_variable_width_mul_byte(dst->arr, rs0->arr, &k, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(rs0), bytes_k);
+    NOAHZK_variable_width_mul_byte(dst->arr, rs0->arr, &k, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(rs0), NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_INT(limbs_k));
+    dst->width = temp_dst_width;
 }
 
 void NOAHZK_variable_width_mul_both_constants(struct NOAHZK_variable_width_var* dst, const uint64_t k0, const uint64_t k1){
-    uint64_t bytes_k0 = NOAHZK_min_bytecnt_var(k0);
-    uint64_t bytes_k1 = NOAHZK_min_bytecnt_var(k1);
+    const uint64_t bytes_k0 = NOAHZK_min_bytecnt_var(k0);
+    const uint64_t bytes_k1 = NOAHZK_min_bytecnt_var(k1);
 
-    dst->width = bytes_k0 + bytes_k1;
+    dst->width = NOAHZK_GET_LIMB_WIDTH_FROM_INT(bytes_k0 + bytes_k1);
     dst->arr = realloc(dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(dst));
 
     NOAHZK_variable_width_mul_byte(dst->arr, &k0, &k1, bytes_k0, bytes_k1);
@@ -171,7 +173,14 @@ void NOAHZK_variable_width_madd_constant(struct NOAHZK_variable_width_var* dst, 
     NOAHZK_variable_width_destroy(product, 0);
 }
 
-// dst = (dst + rs1)*rs2, where dst and rs0 are byte arrays & rs1 and rs2 are variable-width vars
+// dst = (dst + rs1)*rs2, where all are variable-width vars
+void NOAHZK_variable_width_add_and_mul_and_resize(void* dst, struct NOAHZK_variable_width_var* rs1, struct NOAHZK_variable_width_var* rs2){
+    NOAHZK_variable_width_add_and_resize(dst, dst, rs1);
+    NOAHZK_variable_width_mul(dst, dst, rs2);
+}
+
+
+// dst = (dst + rs1)*rs2, where dst is a byte array & rs1 and rs2 are variable-width vars
 // constant-time for safety reasons  
 void NOAHZK_variable_width_add_and_mul_into_byte(void* dst, struct NOAHZK_variable_width_var* rs1, struct NOAHZK_variable_width_var* rs2, const uint64_t width0){
     struct NOAHZK_variable_width_var* rs0 =  NOAHZK_variable_width_init_arr(alloca(sizeof(struct NOAHZK_variable_width_var)), dst, width0);

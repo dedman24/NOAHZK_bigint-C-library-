@@ -32,11 +32,15 @@ typedef const uint32_t NOAHZK_op_t;
 #define NOAHZK_SWP(x, y) (x) = (x) ^ (y); (y) = (x) ^ (y); (x) = (x) ^ (y)
 #define NOAHZK_SWP_PTR(x, y) (x) = (void*)((intptr_t)(x) ^ (intptr_t)(y)); (y) = (void*)((intptr_t)(x) ^ (intptr_t)(y)); (x) = (void*)((intptr_t)(x) ^ (intptr_t)(y))
 #define NOAHZK_SIZE_AS_ARR_OF_TYPE(size, size_type) (((size)/size_type) + ((size)%size_type != 0))
+// gets width in limbs of a variable of width x
+#define NOAHZK_GET_LIMB_WIDTH_FROM_INT(x)           ((x)/sizeof(NOAHZK_limb_t) + ((x)%sizeof(NOAHZK_limb_t) != 0))
 #define NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE(x)     ((x). width*sizeof(NOAHZK_limb_t))
 #define NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(x) ((x)->width*sizeof(NOAHZK_limb_t))
+// width of said var-width type in number of limbs is passed directly
+#define NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_INT(x) ((x)       *sizeof(NOAHZK_limb_t))
 #define NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR_BITS(x) ((x)->width*BITS_IN_NOAHZK_LIMB)
 
-#define NOAHZK_variable_width_var_INITIALIZER 0, NULL
+#define NOAHZK_variable_width_var_INITIALIZER {0, NULL}
 
 struct NOAHZK_variable_width_var{
     uint64_t width;
