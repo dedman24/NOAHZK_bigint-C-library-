@@ -42,9 +42,9 @@ typedef const uint32_t NOAHZK_op_t;
 
 #define NOAHZK_variable_width_var_INITIALIZER {0, NULL}
 
-struct NOAHZK_variable_width_var{
+typedef struct{
     uint64_t width;
     NOAHZK_limb_t* arr;
-};
+} NOAHZK_variable_width_t;
 
 #endif

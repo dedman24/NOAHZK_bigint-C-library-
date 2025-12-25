@@ -13,12 +13,12 @@
 #include "stdint.h"         // integer types
 
 // dst = rs0 + or - (by virtue of op) rs1; constant-time regardless of op as long as add and sub take equal time in the CPU
-void NOAHZK_variable_width_add_or_sub(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, struct NOAHZK_variable_width_var* rs1, const NOAHZK_op_t op){
+void NOAHZK_variable_width_add_or_sub(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* rs0, NOAHZK_variable_width_t* rs1, const NOAHZK_op_t op){
     NOAHZK_limb_t borrow = 0;
 
-// in LISP, subtraction may be defined as (+ being addition, ~ being bitwise not)
+// in LISP (used as pseudocode here), subtraction may be defined as (+ being addition, ~ being bitwise negation)
 // (define (- a b) (+ a (~ b) 1))    
-// we want to invert b if op is 1, and add opp along with it, in which case we treat borrow specially.
+// we want to invert b if op is 1, and add opposite along with it, in which case we treat borrow specially.
 // to negate b we have to:
 //      extend b to occupy the whole byte somehow and XOR it with b
 // (define (cond-not x op) (^ x (- op)))
@@ -35,7 +35,7 @@ void NOAHZK_variable_width_add_or_sub(struct NOAHZK_variable_width_var* dst, str
 }
 
 // dst = rs0 + or - (by virtue of op) k; constant-time regardless of op as long as add and sub take equal time in the CPU
-void NOAHZK_variable_width_add_or_sub_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, const uint64_t k, NOAHZK_op_t op){
+void NOAHZK_variable_width_add_or_sub_constant(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* rs0, const uint64_t k, NOAHZK_op_t op){
     NOAHZK_limb_t borrow = 0;
 
     for(uint64_t i = 0; i < dst->width; i++){
@@ -48,7 +48,7 @@ void NOAHZK_variable_width_add_or_sub_constant(struct NOAHZK_variable_width_var*
     }
 }
 
-void NOAHZK_variable_width_sub(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, struct NOAHZK_variable_width_var* rs1){
+void NOAHZK_variable_width_sub(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* rs0, NOAHZK_variable_width_t* rs1){
     NOAHZK_limb_t borrow = 0;
 
     for(uint64_t i = 0; i < dst->width; i++){
@@ -59,7 +59,7 @@ void NOAHZK_variable_width_sub(struct NOAHZK_variable_width_var* dst, struct NOA
     }
 }
 
-void NOAHZK_variable_width_sub_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, const uint64_t k){
+void NOAHZK_variable_width_sub_constant(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* rs0, const uint64_t k){
     NOAHZK_limb_t borrow = 0;
 
     for(uint64_t i = 0; i < dst->width; i++){

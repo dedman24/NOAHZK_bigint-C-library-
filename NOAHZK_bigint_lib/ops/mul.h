@@ -11,6 +11,7 @@
 
 #include "definitions.h"    // NOAHZK variable-width type
 #include "logarithms.h"     // bit and byte width of constants and arrays
+#include "alloca.h"         // static allocation
 #include "stdint.h"         // integer types
 #include "stdlib.h"         // dynamic memory operations
 #include "string.h"         // memset
@@ -18,7 +19,7 @@
 #include "add.h"            // variable-width addition 
 
 // not constant time, no clue on how one would implement this in constant time
-void NOAHZK_variable_width_shift_right(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* src, const uint64_t shamt){
+void NOAHZK_variable_width_shift_right(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* src, const uint64_t shamt){
     NOAHZK_limb_t dst_arr[dst->width];
     memset(dst_arr, 0, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(dst));
     if(shamt == 0) memcpy(dst_arr, dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(dst));
@@ -92,7 +93,7 @@ void NOAHZK_variable_width_mul_constant_byte(void* dst, const void* rs0, const u
 
 // multiplies two variable width variables together, returns the result in dst
 // constant time
-void NOAHZK_variable_width_mul(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, struct NOAHZK_variable_width_var* rs1){
+void NOAHZK_variable_width_mul(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* rs0, NOAHZK_variable_width_t* rs1){
     const uint64_t temp_dst_width = rs0->width + rs1->width;
     dst->arr = realloc(dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_INT(temp_dst_width));
 
@@ -100,7 +101,7 @@ void NOAHZK_variable_width_mul(struct NOAHZK_variable_width_var* dst, struct NOA
     dst->width = temp_dst_width;
 }
 
-void NOAHZK_variable_width_mul_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, const uint64_t k){
+void NOAHZK_variable_width_mul_constant(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* rs0, const uint64_t k){
     const uint64_t limbs_k = NOAHZK_GET_LIMB_WIDTH_FROM_INT(NOAHZK_min_bytecnt_var(k));
     const uint64_t temp_dst_width = rs0->width + limbs_k;
     dst->arr = realloc(dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_INT(temp_dst_width));
@@ -109,7 +110,7 @@ void NOAHZK_variable_width_mul_constant(struct NOAHZK_variable_width_var* dst, s
     dst->width = temp_dst_width;
 }
 
-void NOAHZK_variable_width_mul_both_constants(struct NOAHZK_variable_width_var* dst, const uint64_t k0, const uint64_t k1){
+void NOAHZK_variable_width_mul_both_constants(NOAHZK_variable_width_t* dst, const uint64_t k0, const uint64_t k1){
     const uint64_t bytes_k0 = NOAHZK_min_bytecnt_var(k0);
     const uint64_t bytes_k1 = NOAHZK_min_bytecnt_var(k1);
 
@@ -120,61 +121,61 @@ void NOAHZK_variable_width_mul_both_constants(struct NOAHZK_variable_width_var* 
 }
 
 // dst = rs0*rs1*rs1
-void NOAHZK_variable_width_mul_by_square(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, struct NOAHZK_variable_width_var* rs1){
-    struct NOAHZK_variable_width_var* product = NOAHZK_variable_width_init(alloca(sizeof(struct NOAHZK_variable_width_var)), 0);
-    NOAHZK_variable_width_mul(product, rs1, rs1);
+void NOAHZK_variable_width_mul_by_square(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* rs0, NOAHZK_variable_width_t* rs1){
+    NOAHZK_variable_width_t product = NOAHZK_variable_width_var_INITIALIZER;
+    NOAHZK_variable_width_mul(&product, rs1, rs1);
 
-    NOAHZK_variable_width_add_and_resize(dst, rs0, product);
-    NOAHZK_variable_width_destroy(product, 0);
+    NOAHZK_variable_width_add_and_resize(dst, rs0, &product);
+    NOAHZK_variable_width_destroy(&product, NOAHZK_variable_width_keep_ptr);
 }
 
-void NOAHZK_variable_width_square(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* src){
+void NOAHZK_variable_width_square(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* src){
     NOAHZK_variable_width_mul(dst, src, src);
 }
 
-void NOAHZK_variable_width_square_constant(struct NOAHZK_variable_width_var* dst, uint64_t k){
+void NOAHZK_variable_width_square_constant(NOAHZK_variable_width_t* dst, uint64_t k){
     NOAHZK_variable_width_mul_both_constants(dst, k, k);
 }
 
-void NOAHZK_variable_width_mul_by_square_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, uint64_t k){
-    struct NOAHZK_variable_width_var* product = NOAHZK_variable_width_init(alloca(sizeof(struct NOAHZK_variable_width_var)), 0);
-    NOAHZK_variable_width_square_constant(product, k);
+void NOAHZK_variable_width_mul_by_square_constant(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* rs0, uint64_t k){
+    NOAHZK_variable_width_t product = NOAHZK_variable_width_var_INITIALIZER;
+    NOAHZK_variable_width_square_constant(&product, k);
 
-    NOAHZK_variable_width_add_and_resize(dst, rs0, product);
-    NOAHZK_variable_width_destroy(product, 0);
+    NOAHZK_variable_width_add_and_resize(dst, rs0, &product);
+    NOAHZK_variable_width_destroy(&product, NOAHZK_variable_width_keep_ptr);
 }
 
 // dst = rs0 * rs1**power, where power >= 0 (because it's an unsigned 64-bit integer)
-void NOAHZK_variable_width_mul_to_power_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, struct NOAHZK_variable_width_var* rs1, uint64_t power){
-    struct NOAHZK_variable_width_var* product = NOAHZK_variable_width_init_constant(alloca(sizeof(struct NOAHZK_variable_width_var)), 1);
-    for(uint64_t i = 0; i < power; i++); NOAHZK_variable_width_mul(product, product, rs1);
+void NOAHZK_variable_width_mul_to_power_constant(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* rs0, NOAHZK_variable_width_t* rs1, uint64_t power){
+    NOAHZK_variable_width_t* product = NOAHZK_variable_width_init_constant(alloca(sizeof(NOAHZK_variable_width_t)), 1);
+    for(uint64_t i = 0; i < power; i++) NOAHZK_variable_width_mul(product, product, rs1);
 
     NOAHZK_variable_width_add_and_resize(dst, rs0, product);
-    NOAHZK_variable_width_destroy(product, 0);
+    NOAHZK_variable_width_destroy(product, NOAHZK_variable_width_keep_ptr);
 }
 
 // dst = rs0 * k**power, where power >= 0 (because it's an unsigned 64-bit integer)
-void NOAHZK_variable_width_mul_by_constant_to_power_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* rs0, uint64_t k, const uint64_t power){
-    struct NOAHZK_variable_width_var* product = NOAHZK_variable_width_init_constant(alloca(sizeof(struct NOAHZK_variable_width_var)), 1);
-    for(uint64_t i = 0; i < power; i++); NOAHZK_variable_width_mul_constant(product, product, k);
+void NOAHZK_variable_width_mul_by_constant_to_power_constant(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* rs0, uint64_t k, const uint64_t power){
+    NOAHZK_variable_width_t* product = NOAHZK_variable_width_init_constant(alloca(sizeof(NOAHZK_variable_width_t)), 1);
+    for(uint64_t i = 0; i < power; i++) NOAHZK_variable_width_mul_constant(product, product, k);
 
     NOAHZK_variable_width_add_and_resize(dst, rs0, product);
-    NOAHZK_variable_width_destroy(product, 0);
+    NOAHZK_variable_width_destroy(product, NOAHZK_variable_width_keep_ptr);
 }
 
 // dst += src*k
-void NOAHZK_variable_width_madd_constant(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* src, uint64_t k){
+void NOAHZK_variable_width_madd_constant(NOAHZK_variable_width_t* dst, NOAHZK_variable_width_t* src, uint64_t k){
     if(!src->width) return;
 
-    struct NOAHZK_variable_width_var* product = NOAHZK_variable_width_init(alloca(sizeof(struct NOAHZK_variable_width_var)), 0);
-    NOAHZK_variable_width_mul_constant(product, src, k);
+    NOAHZK_variable_width_t product = NOAHZK_variable_width_var_INITIALIZER;
+    NOAHZK_variable_width_mul_constant(&product, src, k);
 
-    NOAHZK_variable_width_add_and_resize(dst, dst, product);
-    NOAHZK_variable_width_destroy(product, 0);
+    NOAHZK_variable_width_add_and_resize(dst, dst, &product);
+    NOAHZK_variable_width_destroy(&product, NOAHZK_variable_width_keep_ptr);
 }
 
 // dst = (dst + rs1)*rs2, where all are variable-width vars
-void NOAHZK_variable_width_add_and_mul_and_resize(void* dst, struct NOAHZK_variable_width_var* rs1, struct NOAHZK_variable_width_var* rs2){
+void NOAHZK_variable_width_add_and_mul_and_resize(void* dst, NOAHZK_variable_width_t* rs1, NOAHZK_variable_width_t* rs2){
     NOAHZK_variable_width_add_and_resize(dst, dst, rs1);
     NOAHZK_variable_width_mul(dst, dst, rs2);
 }
@@ -182,18 +183,18 @@ void NOAHZK_variable_width_add_and_mul_and_resize(void* dst, struct NOAHZK_varia
 
 // dst = (dst + rs1)*rs2, where dst is a byte array & rs1 and rs2 are variable-width vars
 // constant-time for safety reasons  
-void NOAHZK_variable_width_add_and_mul_into_byte(void* dst, struct NOAHZK_variable_width_var* rs1, struct NOAHZK_variable_width_var* rs2, const uint64_t width0){
-    struct NOAHZK_variable_width_var* rs0 =  NOAHZK_variable_width_init_arr(alloca(sizeof(struct NOAHZK_variable_width_var)), dst, width0);
+void NOAHZK_variable_width_add_and_mul_into_byte(void* dst, NOAHZK_variable_width_t* rs1, NOAHZK_variable_width_t* rs2, const uint64_t width0){
+    NOAHZK_variable_width_t* rs0 =  NOAHZK_variable_width_init_arr(alloca(sizeof(NOAHZK_variable_width_t)), dst, width0);
 
     NOAHZK_variable_width_add(rs0, rs0, rs1);
     NOAHZK_variable_width_mul(rs0, rs0, rs2);
 
     NOAHZK_variable_width_copy_to_arr(dst, width0, rs0);
-    NOAHZK_variable_width_destroy(rs0, 0);
+    NOAHZK_variable_width_destroy(rs0, NOAHZK_variable_width_keep_ptr);
 }
 
 // not constant-time
-void* NOAHZK_variable_width_nth_triangle_number(struct NOAHZK_variable_width_var* dst, uint64_t n){
+void* NOAHZK_variable_width_nth_triangle_number(NOAHZK_variable_width_t* dst, uint64_t n){
     if(!dst) dst = NOAHZK_variable_width_init(NULL, 0);
     NOAHZK_variable_width_square_constant(dst, n);
 

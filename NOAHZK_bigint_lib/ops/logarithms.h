@@ -59,7 +59,7 @@ uint64_t NOAHZK_variable_width_min_bitcnt_byte(void* real_value, uint64_t size){
     return size*BITS_IN_UINT8_T - number_of_leading_zeroes;
 }
 
-uint64_t NOAHZK_variable_width_min_bitcnt(struct NOAHZK_variable_width_var* value){
+uint64_t NOAHZK_variable_width_min_bitcnt(NOAHZK_variable_width_t* value){
     return NOAHZK_variable_width_min_bitcnt_byte(value->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(value));
 }
 
@@ -68,7 +68,7 @@ uint64_t NOAHZK_variable_width_min_bytecnt_byte(void* real_value, uint64_t size)
     return min_bitcnt/BITS_IN_UINT8_T + (min_bitcnt%BITS_IN_UINT8_T != 0);
 }
 
-uint64_t NOAHZK_variarble_width_min_bytecnt(struct NOAHZK_variable_width_var* value){
+uint64_t NOAHZK_variarble_width_min_bytecnt(NOAHZK_variable_width_t* value){
     return NOAHZK_variable_width_min_bytecnt_byte(value->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(value));
 }
 

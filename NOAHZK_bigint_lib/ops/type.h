@@ -15,8 +15,8 @@
 #include "string.h"         // memset, memcpy
 #include "stdlib.h"         // dynamic memory operations
 
-void* NOAHZK_variable_width_init(struct NOAHZK_variable_width_var* toinit, const uint64_t width_in_bytes){
-    if(!toinit) toinit = malloc(sizeof(struct NOAHZK_variable_width_var));
+void* NOAHZK_variable_width_init(NOAHZK_variable_width_t* toinit, const uint64_t width_in_bytes){
+    if(!toinit) toinit = malloc(sizeof(NOAHZK_variable_width_t));
 
     const uint64_t width = NOAHZK_SIZE_AS_ARR_OF_TYPE(width_in_bytes, sizeof(NOAHZK_limb_t));
     if(width){
@@ -30,9 +30,9 @@ void* NOAHZK_variable_width_init(struct NOAHZK_variable_width_var* toinit, const
     return toinit;
 }
 
-// initializes toinit to array "arr" of width (in bytes) "width_in_bytes", or returns ptr to struct NOAHZK_variable_width_var that holds array holding the same contents of arr
-void* NOAHZK_variable_width_init_arr(struct NOAHZK_variable_width_var* toinit, void* arr, const uint64_t width_in_bytes){
-    if(!toinit) toinit = malloc(sizeof(struct NOAHZK_variable_width_var));
+// initializes toinit to array "arr" of width (in bytes) "width_in_bytes", or returns ptr to NOAHZK_variable_width_t that holds array holding the same contents of arr
+void* NOAHZK_variable_width_init_arr(NOAHZK_variable_width_t* toinit, void* arr, const uint64_t width_in_bytes){
+    if(!toinit) toinit = malloc(sizeof(NOAHZK_variable_width_t));
 
     const uint64_t width = NOAHZK_SIZE_AS_ARR_OF_TYPE(width_in_bytes, sizeof(NOAHZK_limb_t));
     if(width){
@@ -47,9 +47,9 @@ void* NOAHZK_variable_width_init_arr(struct NOAHZK_variable_width_var* toinit, v
     return toinit;
 }
 
-// initializes toinit to k, or returns ptr to struct NOAHZK_variable_width_var that holds k
-void* NOAHZK_variable_width_init_constant(struct NOAHZK_variable_width_var* toinit, uint64_t k){
-    if(!toinit) toinit = malloc(sizeof(struct NOAHZK_variable_width_var));
+// initializes toinit to k, or returns ptr to NOAHZK_variable_width_t that holds k
+void* NOAHZK_variable_width_init_constant(NOAHZK_variable_width_t* toinit, uint64_t k){
+    if(!toinit) toinit = malloc(sizeof(NOAHZK_variable_width_t));
 
     const uint64_t width_in_bits = NOAHZK_min_bitcnt_var(k);
     const uint64_t width = NOAHZK_SIZE_AS_ARR_OF_TYPE(width_in_bits, BITS_IN_NOAHZK_LIMB);
@@ -66,8 +66,8 @@ void* NOAHZK_variable_width_init_constant(struct NOAHZK_variable_width_var* toin
     return toinit;
 }
 
-void* NOAHZK_variable_width_copy(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* src){
-    if(!dst) dst = malloc(sizeof(struct NOAHZK_variable_width_var));
+void* NOAHZK_variable_width_copy(NOAHZK_variable_width_t* restrict dst, NOAHZK_variable_width_t* restrict src){
+    if(!dst) dst = malloc(sizeof(NOAHZK_variable_width_t));
 
     dst->width = src->width;
     dst->arr = malloc(NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(src));
@@ -77,7 +77,7 @@ void* NOAHZK_variable_width_copy(struct NOAHZK_variable_width_var* dst, struct N
     return dst;
 }
 
-void* NOAHZK_variable_width_copy_to_arr(void* dst, uint64_t width_dst, struct NOAHZK_variable_width_var* src){
+void* NOAHZK_variable_width_copy_to_arr(void* dst, uint64_t width_dst, NOAHZK_variable_width_t* src){
     if(!width_dst) width_dst = NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(src);
     if(!dst) dst = malloc(width_dst);
 
@@ -87,9 +87,10 @@ void* NOAHZK_variable_width_copy_to_arr(void* dst, uint64_t width_dst, struct NO
 }
 
 // moves fields from src to dst, clears src. doesn't free it.
+// the two may not point to the same object
 // allocates dst if NULL is passed
-void* NOAHZK_variable_width_move(struct NOAHZK_variable_width_var* dst, struct NOAHZK_variable_width_var* src){
-    if(!dst) dst = malloc(sizeof(struct NOAHZK_variable_width_var));
+void* NOAHZK_variable_width_move(NOAHZK_variable_width_t* restrict dst, NOAHZK_variable_width_t* restrict src){
+    if(!dst) dst = malloc(sizeof(NOAHZK_variable_width_t));
 
     dst->width = src->width; src->width = 0;
     dst->arr = src->arr; src->arr = NULL;
@@ -97,13 +98,16 @@ void* NOAHZK_variable_width_move(struct NOAHZK_variable_width_var* dst, struct N
     return dst;
 }
 
-void NOAHZK_variable_width_destroy(struct NOAHZK_variable_width_var* todestroy, int freeptr){
+typedef enum{ NOAHZK_variable_width_keep_ptr, NOAHZK_variable_width_free_ptr } NOAHZK_variable_width_option_t;
+
+void NOAHZK_variable_width_destroy(NOAHZK_variable_width_t* todestroy, NOAHZK_variable_width_option_t freeptr){
     if(todestroy->arr){
         memset(todestroy->arr, 0, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_PTR(todestroy));
         memset(&todestroy->width, 0, sizeof(todestroy->width));
         free(todestroy->arr);
     } 
-    if(freeptr) free(todestroy);
+
+    if(freeptr == NOAHZK_variable_width_free_ptr) free(todestroy);
 }
 
 #endif
