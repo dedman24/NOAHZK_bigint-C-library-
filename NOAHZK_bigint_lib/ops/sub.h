@@ -12,178 +12,97 @@
 #include "definitions.h"    // NOAHZK variable-width type
 #include "stdint.h"         // integer types
 
-// dst = rs0 + or - (by virtue of op) rs1; constant-time regardless of op as long as add and sub take equal time in the CPU
-void NOAHZK_variable_width_add_or_sub(NOAHZK_variable_width_t* const dst, const NOAHZK_variable_width_t* const rs0, const NOAHZK_variable_width_t* const rs1, const NOAHZK_op_t op){
-    NOAHZK_limb_t borrow = 0;
+// BE WARY OF HOW C CONVERTS BETWEEN UNSIGNED TYPES!
+// it's not the fault of C moreso I'm just dumb
 
+// negates src according to the contents of op in constant time.
+// returns two's complement of src unsigned if op is 1, otherwise src unmodified if it is 0.
+NOAHZK_limb_t NOAHZK_variable_width_conditionally_invert(const NOAHZK_limb_t src, NOAHZK_op_t op){
+    return src ^ -(NOAHZK_limb_t)op;
+}
+
+// dst = rs0 + or - (by virtue of op) rs1; constant-time regardless of what the value of 'op' is. 
+void NOAHZK_variable_width_add_or_sub(NOAHZK_variable_width_t* const dst, const NOAHZK_variable_width_t* const rs0, const NOAHZK_variable_width_t* const rs1, NOAHZK_op_t op){
+    NOAHZK_limb_t carry = op;
 // in LISP (used as pseudocode here), subtraction may be defined as (+ being addition, ~ being bitwise negation)
 // (define (- a b) (+ a (~ b) 1))    
-// we want to invert b if op is 1, and add opposite along with it, in which case we treat borrow specially.
+// we want to invert b if op is 1, and add opposite along with it, in which case we treat carry specially.
 // to negate b we have to:
 //      extend b to occupy the whole byte somehow and XOR it with b
 // (define (cond-not x op) (^ x (- op)))
 // (define (plus-or-minus a b op) (+ a (cond-not b op) op))
 
-    for(uint64_t i = 0; i < dst->width; i++){
-        NOAHZK_limb_t rs1_limb = i < rs1->width? rs1->arr[i]: 0;
-        rs1_limb ^= -((NOAHZK_limb_t)op);               // if op is 1, then -op = -1 = NOAHZK_LIMB_MAX (after type conversion) which when xored negates rs1_limb. 
+    for(size_t i = 0; i < dst->width; i++){
+        const NOAHZK_limb_t rs1_limb = NOAHZK_variable_width_get_arr(rs1->arr, rs1->width, rs1->sign, i);
+        const NOAHZK_limb_t negated_rs1_limb = NOAHZK_variable_width_conditionally_invert(rs1_limb, op);
 
-        uint64_t z = (uint64_t)(i < rs0->width? rs0->arr[i]: 0) + (uint64_t)rs1_limb + op + borrow;
+        NOAHZK_expanded_limb_t z = NOAHZK_variable_width_get_arr(rs0->arr, rs0->width, rs0->sign, i) + (NOAHZK_expanded_limb_t)negated_rs1_limb + (NOAHZK_expanded_limb_t)carry;
         dst->arr[i] = z & NOAHZK_LIMB_MAX;
-        borrow = z >> BITS_IN_NOAHZK_LIMB;
+        carry = NOAHZK_variable_width_get_out(z);
     }
+
+    NOAHZK_variable_width_update_sign(dst);
 }
 
-// dst = rs0 + or - (by virtue of op) k; constant-time regardless of op as long as add and sub take equal time in the CPU
-void NOAHZK_variable_width_add_or_sub_constant(NOAHZK_variable_width_t* const dst, const NOAHZK_variable_width_t* const rs0, const uint64_t k, const NOAHZK_op_t op){
-    NOAHZK_limb_t borrow = 0;
+// dst = rs0 + or - (by virtue of op) k; constant-time regardless of what the value of 'op' is.
+void NOAHZK_variable_width_add_or_sub_constant(NOAHZK_variable_width_t* const dst, const NOAHZK_variable_width_t* const rs0, const uint64_t k, NOAHZK_op_t op){
+    NOAHZK_limb_t carry = op;
 
-    for(uint64_t i = 0; i < dst->width; i++){
-        NOAHZK_limb_t rs1_limb = NOAHZK_get_section_from_var(k, NOAHZK_LIMB_MAX, i, NOAHZK_limb_t);
-        rs1_limb ^= -((NOAHZK_limb_t)op); 
+    for(size_t i = 0; i < dst->width; i++){
+        const NOAHZK_limb_t k_limb = NOAHZK_get_section_from_var(k, NOAHZK_LIMB_MAX, i, NOAHZK_limb_t);
+        const NOAHZK_limb_t negated_k_limb = NOAHZK_variable_width_conditionally_invert(k_limb, op);
 
-        uint64_t z = (uint64_t)(i < rs0->width? rs0->arr[i]: 0) + (uint64_t)rs1_limb + op + borrow;
+        const NOAHZK_expanded_limb_t z = NOAHZK_variable_width_get_arr(rs0->arr, rs0->width, rs0->sign, i) + (NOAHZK_expanded_limb_t)negated_k_limb + (NOAHZK_expanded_limb_t)carry;
         dst->arr[i] = z & NOAHZK_LIMB_MAX;
-        borrow = z >> BITS_IN_NOAHZK_LIMB;
+        carry = NOAHZK_variable_width_get_out(z);
     }
+
+    NOAHZK_variable_width_update_sign(dst);
+}
+
+NOAHZK_limb_t NOAHZK_variable_width_sub_primitive(NOAHZK_limb_t* const dst, const NOAHZK_limb_t* const rs0, const NOAHZK_limb_t* const rs1, const size_t width_dst, const size_t width0, const size_t width1, const NOAHZK_limb_t sign0, const NOAHZK_limb_t sign1){
+    NOAHZK_limb_t carry = 1;
+// TODO: SEE IF WORKS WITH PARENTHESES!
+    for(size_t i = 0; i < width_dst; i++){
+        const NOAHZK_expanded_limb_t z = NOAHZK_variable_width_get_arr(rs0, width0, sign0, i) + NOAHZK_variable_width_get_arr_inverted(rs1, width1, sign1, i) + (NOAHZK_expanded_limb_t)carry;
+        dst[i] = z & NOAHZK_LIMB_MAX;
+        carry = NOAHZK_variable_width_get_out(z);
+    }
+    return carry;
+}
+
+NOAHZK_limb_t NOAHZK_variable_width_sub_constant_primitive(NOAHZK_limb_t* const dst, const NOAHZK_limb_t* const rs0, const uint64_t k, const size_t width_dst, const size_t width0, const NOAHZK_limb_t sign0){
+    NOAHZK_limb_t carry = 1;
+
+    for(size_t i = 0; i < width_dst; i++){
+        const NOAHZK_expanded_limb_t z = NOAHZK_variable_width_get_arr(rs0, width0, sign0, i) + (NOAHZK_expanded_limb_t)NOAHZK_get_section_from_var_inverted(k, NOAHZK_LIMB_MAX, i, NOAHZK_limb_t) + (NOAHZK_expanded_limb_t)carry;
+        dst[i] = z & NOAHZK_LIMB_MAX;
+        carry = NOAHZK_variable_width_get_out(z);
+    }
+    return carry;
 }
 
 void NOAHZK_variable_width_sub(NOAHZK_variable_width_t* const dst, const NOAHZK_variable_width_t* const rs0, const NOAHZK_variable_width_t* const rs1){
-    NOAHZK_limb_t borrow = 0;
-
-    for(uint64_t i = 0; i < dst->width; i++){
-// borrow goes into the 33rd bit, which can be extracted in constant-time assuming constant-time shifts
-        uint64_t z = (uint64_t)(i < rs0->width? rs0->arr[i]: 0) - (uint64_t)(i < rs1->width? rs1->arr[i]: 0) + borrow;
-        dst->arr[i] = z & NOAHZK_LIMB_MAX;
-        borrow = z >> BITS_IN_NOAHZK_LIMB;
-    }
+    NOAHZK_variable_width_sub_primitive(dst->arr, rs0->arr, rs1->arr, dst->width, rs0->width, rs1->width, rs0->sign, rs1->sign);
+    NOAHZK_variable_width_update_sign(dst);
 }
 
 void NOAHZK_variable_width_sub_constant(NOAHZK_variable_width_t* const dst, const NOAHZK_variable_width_t* const rs0, const uint64_t k){
-    NOAHZK_limb_t borrow = 0;
-
-    for(uint64_t i = 0; i < dst->width; i++){
-// borrow goes into the 33rd bit, which can be extracted in constant-time assuming constant-time shifts
-        uint64_t z = (uint64_t)(i < rs0->width? rs0->arr[i]: 0) - NOAHZK_get_section_from_var(k, NOAHZK_LIMB_MAX, i, NOAHZK_limb_t) - borrow;
-        dst->arr[i] = z & NOAHZK_LIMB_MAX;
-        borrow = z >> BITS_IN_NOAHZK_LIMB & 1;
-    }
+    NOAHZK_variable_width_sub_constant_primitive(dst->arr, rs0->arr, k, dst->width, rs0->width, rs0->sign);
+    NOAHZK_variable_width_update_sign(dst);
 }
 
 // for sub ops where dst may have a size of 0, initialises dst's width to the width of the smallest src operand.
 void NOAHZK_variable_width_sub_and_resize(NOAHZK_variable_width_t* const dst, const NOAHZK_variable_width_t* const rs0, const NOAHZK_variable_width_t* const rs1){
-    NOAHZK_limb_t borrow = 0;
-
-    const uint64_t largest_width = NOAHZK_MAX(rs0->width, rs1->width); 
-// expands dst to size of largest operand, initializing new space to 0 
-    if(dst->width < largest_width){
-        dst->arr = realloc(dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_INT(largest_width));
-        memset(dst->arr + dst->width, 0, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_INT(largest_width - dst->width));
-        dst->width = largest_width;
-    }
-
-    for(uint64_t i = 0; i < dst->width; i++){
-// borrow goes into the 33rd bit, which can be extracted in constant-time assuming constant-time shifts
-        uint64_t z = (uint64_t)(i < rs0->width? rs0->arr[i]: 0) - (uint64_t)(i < rs1->width? rs1->arr[i]: 0) + borrow;
-        dst->arr[i] = z & NOAHZK_LIMB_MAX;
-        borrow = z >> BITS_IN_NOAHZK_LIMB;
-    }
+    NOAHZK_variable_width_resize_to_largest(dst, rs0->width, rs1->width);
+    const NOAHZK_limb_t cout = NOAHZK_variable_width_sub_primitive(dst->arr, rs0->arr, rs1->arr, dst->width, rs0->width, rs1->width, rs0->sign, rs1->sign);
+    NOAHZK_variable_width_handle_carry(dst, rs0->sign, rs1->sign ^ 1, cout);
 }
 
 void NOAHZK_variable_width_sub_and_resize_constant(NOAHZK_variable_width_t* const dst, const NOAHZK_variable_width_t* const rs0, const uint64_t k){
-    NOAHZK_limb_t borrow = 0;
-
-    const uint64_t largest_width = NOAHZK_MAX(rs0->width, sizeof(k)/sizeof(*rs0->arr)); 
-// expands dst to size of largest operand, initializing new space to 0 
-    if(dst->width < largest_width){
-        dst->arr = realloc(dst->arr, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_INT(largest_width));
-        memset(dst->arr + dst->width, 0, NOAHZK_GET_WIDTH_FROM_VAR_WIDTH_TYPE_INT(largest_width - dst->width));
-        dst->width = largest_width;
-    }
-
-    for(uint64_t i = 0; i < dst->width; i++){
-// borrow goes into the 33rd bit, which can be extracted in constant-time assuming constant-time shifts
-        uint64_t z = (uint64_t)(i < rs0->width? rs0->arr[i]: 0) - NOAHZK_get_section_from_var(k, NOAHZK_LIMB_MAX, i, NOAHZK_limb_t) - borrow;
-        dst->arr[i] = z & NOAHZK_LIMB_MAX;
-        borrow = z >> BITS_IN_NOAHZK_LIMB & 1;
-    }
-}
-
-void NOAHZK_variable_width_neg_byte(void* const real_dst, const void* const real_src, const uint64_t width){
-    uint8_t carry = 1;
-    uint8_t *dst = real_dst;
-    const uint8_t *src = real_src;
-
-    for(uint64_t i = 0; i < width; i++){
-// if subtraction overflows and requires a borrow, z (when interpreted as a signed type) is negative and thus bit 15 is set. this also means that bit 8 is set, so we can check that for borrow. 
-        uint16_t z = (uint16_t)(~src[i]) + carry;
-        dst[i] = z & UINT8_MAX;
-        carry = z >> BITS_IN_UINT8_T;
-    }
-}
-
-void NOAHZK_variable_width_sub_with_bit_offset_byte(void* const real_dst, const void* const real_rs0, const void* const real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result, const uint64_t bit_offset){
-    int8_t borrow = 0;
-    uint8_t *dst = real_dst;
-    const uint8_t *rs0 = real_rs0, *rs1 = real_rs1;
-
-    const uint64_t byte_offset = bit_offset/BITS_IN_UINT8_T;
-
-    for(uint64_t i = byte_offset; i < width_result; i++){
-// runs in constant time regardless of conditional statements because those statements are NOT DATA-DEPENDENT; widths of operands in NOAHZK are public.
-// correctly applies offset because shifts rs1 by bit_offset modulo BITS_IN_UINT8_T
-// the top 8 bits of z are set to the "overflow/shifted data" that doesn't fit inside the bottom 8 bits, to which the carry out from the previous addition is also added
-// the top 8 bits are set as the carry for the next repetition and this is repeated
-// we have the top bits that didn't fit in 8 bits of the previous addtition stored inside carry and added to the bottom part of the next addition
-// idk how good this explanation is.
-        uint16_t z = (uint16_t)(i < width0? rs0[i]: 0) - (i-byte_offset < width1? (uint16_t)rs1[i-byte_offset] << (bit_offset % BITS_IN_UINT8_T): 0) + (int16_t)borrow;
-
-        dst[i] = z & UINT8_MAX;
-        borrow = z >> BITS_IN_UINT8_T;
-    }
-}
-
-// compiles to constant-time code on any cpu with constant-time shifts.
-void NOAHZK_variable_width_sub_byte(void* const real_dst, const void* const real_rs0, const void* const real_rs1, const uint64_t width){
-    uint8_t borrow = 0;
-    uint8_t *dst = real_dst;
-    const uint8_t *rs0 = real_rs0, *rs1 = real_rs1;
-
-    for(uint64_t i = 0; i < width; i++){
-// if subtraction overflows and requires a borrow, z (when interpreted as a signed type) is negative and thus bit 15 is set. this also means that bit 8 is set, so we can check that for borrow. 
-        uint16_t z = (uint16_t)rs0[i] - (uint16_t)rs1[i] - borrow;
-        dst[i] = z & UINT8_MAX;
-        borrow = z >> BITS_IN_UINT8_T & 1;
-    }
-}
-
-// compiles to constant-time code on any cpu with constant-time shifts.
-void NOAHZK_variable_width_sub_constant_byte(void* const real_dst, const void* const real_rs0, const uint64_t k, const uint64_t width){
-    uint8_t borrow = 0;
-    uint8_t *dst = real_dst;
-    const uint8_t *rs0 = real_rs0;
-
-    for(uint64_t i = 0; i < width; i++){
-// if subtraction overflows and requires a borrow, z (when interpreted as a signed type) is negative and thus bit 15 is set. this also means that bit 8 is set, so we can check that for borrow. 
-        uint16_t z = (uint16_t)rs0[i] - NOAHZK_get_section_from_var(k, UINT8_MAX, i, uint8_t) - borrow;
-        dst[i] = z & UINT8_MAX;
-        borrow = z >> BITS_IN_UINT8_T & 1;
-    }
-}
-
-// compiles to constant-time code on any cpu with constant-time shifts.
-void NOAHZK_variable_width_both_sub_byte(void* const real_dst, const void* const real_rs0, const void* const real_rs1, const uint64_t width0, const uint64_t width1, const uint64_t width_result){
-    uint8_t borrow = 0;
-    uint8_t *dst = real_dst;
-    const uint8_t *rs0 = real_rs0, *rs1 = real_rs1;
-
-    for(uint64_t i = 0; i < width_result; i++){
-// if subtraction overflows and requires a borrow, z (when interpreted as a signed type) is negative and thus bit 15 is set. this also means that bit 8 is set, so we can check that for borrow. 
-// runs in constant time regardless of conditional statements because those statements are NOT DATA-DEPENDENT; widths of operands in NOAHZK are public.
-        uint16_t z = (uint16_t)(i < width0? rs0[i]: 0) - (uint16_t)(i < width1? rs1[i]: 0) - borrow;
-        dst[i] = z & UINT8_MAX;
-        borrow = z >> BITS_IN_UINT8_T & 1;
-    }
+    NOAHZK_variable_width_resize_to_largest(dst, rs0->width, sizeof(k)/sizeof(NOAHZK_limb_t));
+    const NOAHZK_limb_t cout = NOAHZK_variable_width_sub_constant_primitive(dst->arr, rs0->arr, k, dst->width, rs0->width, rs0->sign);
+    NOAHZK_variable_width_handle_carry(dst, rs0->sign, 1, cout);        // constants that are subtracted are ALWAYS negative
 }
 
 #endif
