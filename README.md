@@ -10,7 +10,7 @@ Both ceil_log2 (called NOAHZK_ceil_log2) and ceil_log2(x+1) (called NOAHZK_min_b
 
 ## usage
 Just download the [NOAHZK_bigint_lib](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/NOAHZK_bigint_lib) folder and include [NOAHZK_bigint_lib/NOAHZK_bigint.h](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/NOAHZK_bigint_lib/noahzk_bigint.h) in your project.
-The bigint type itself is defined in [definitions.h](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/NOAHZK_bigint_lib/definitions.h) as _struct NOAHZK_variable_width_var_. The functions to initialize it are defined in [type.h](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/NOAHZK_bigint_lib/type.h) and they are:
+The bigint type itself is defined in [definitions.h](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/NOAHZK_bigint_lib/definitions.h) as _NOAHZK_variable_width_var_t_. The functions to initialize it are defined in [type.h](https://github.com/dedman24/NOAHZK_bigint-c-library-/blob/main/NOAHZK_bigint_lib/type.h) and they are:
   - NOAHZK_init_variable_width_var            ~ initializes variable-width var (or creates a new one if none is passed) so that it is a certain amount of bytes wide (allowed to be 0). Its contents are initialized to 0.
   - NOAHZK_init_variable_width_var_constant   ~ initializes variable-width var (or creates a new one if none is passed) to the uint64_t passed to it, so it uses the minimum number of limbs necessary to represent it.
   - NOAHZK_copy_variable_width_var            ~ copies a variable-width var to another, or creates a new, distinct copy if none to copy to is passed.
